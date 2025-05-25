@@ -1,11 +1,11 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
     <meta charset="UTF-8">
-    <img src="/static/noxion-logo.png" alt="Noxion logo" style="width: 160px; margin-bottom: 1rem; filter: drop-shadow(0 0 6px #000);">
-    <title>Upload to Noxion</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Noxion | Archive of Our Sins</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
     <style>
         body {
             background-color: #1e1e2f;
@@ -46,6 +46,7 @@
             background-color: #5c6bc0;
             color: white;
             cursor: pointer;
+            transition: background-color 0.3s ease;
         }
 
         button:hover {
@@ -54,17 +55,51 @@
 
         #status {
             margin-top: 1rem;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        #toast {
+            visibility: hidden;
+            min-width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 1rem;
+            position: fixed;
+            z-index: 1;
+            bottom: 30px;
+            font-size: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.5s, bottom 0.5s;
+        }
+
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
+
+        img.logo {
+            width: 120px;
+            margin-bottom: 1.5rem;
+            filter: drop-shadow(0 0 4px #000);
         }
     </style>
 </head>
 <body>
+    <img src="/static/noxion-logo.png" alt="Noxion Logo" class="logo">
     <h1>Upload AO3 HTML</h1>
     <form id="uploadForm" enctype="multipart/form-data">
         <input type="file" name="ao3_file" accept=".html" required />
+        <input type="text" name="ao3_url" placeholder="(Optional) AO3 link if not in file" />
         <button type="submit">Send to Notion</button>
-        <input type="text" name="ao3_url" placeholder="(Optional) AO3 link if not in file">
     </form>
     <div id="status"></div>
+
     {% if history %}
     <div style="margin-top: 2rem; text-align: left; width: 100%; max-width: 400px;">
         <h2 style="font-size: 1.2rem; border-bottom: 1px solid #444; padding-bottom: 0.5rem;">Recent Uploads</h2>
@@ -73,21 +108,42 @@
                 <li style="margin-bottom: 0.5rem;">
                     <strong>{{ item.Title }}</strong><br>
                     <a href="{{ item.URL }}" target="_blank" style="color: #a3d0ff;">{{ item.URL }}</a><br>
-                    {{ item.Words }} words, {{ item.Chapters }} – {{ item.Status }}
+                    {{ item.Words }} words, {{ item.Chapters }} – {{ item.Status }}<br>
+                    <small style="color: #aaa;">{{ item.Timestamp }}</small>
                 </li>
             {% endfor %}
         </ul>
     </div>
+    {% endif %}
+
+    <div id="toast"></div>
+
     <script>
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'show';
+            setTimeout(() => {
+                toast.className = toast.className.replace('show', '');
+            }, 4000);
+        }
+
         document.getElementById('uploadForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const form = e.target;
             const data = new FormData(form);
             const status = document.getElementById('status');
-            status.textContent = 'Processing...';
+            status.textContent = '🐍 Sending to Notion...';
             const response = await fetch('/submit', { method: 'POST', body: data });
             const result = await response.json();
-            status.textContent = result.success ? '✅ Synced to Notion!' : '❌ Error: ' + result.error;
+            if (result.success) {
+                showToast("✅ Synced to Notion!");
+                status.textContent = '';
+                setTimeout(() => window.location.reload(), 1200);
+            } else {
+                showToast("❌ Error: " + result.error);
+                status.textContent = '';
+            }
         });
     </script>
 </body>

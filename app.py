@@ -18,15 +18,11 @@ upload_history = []
 def index():
     return render_template('index.html', history=upload_history)
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
 @app.route('/submit', methods=['POST'])
 def submit():
     if 'ao3_file' not in request.files:
         return jsonify({"success": False, "error": "No file uploaded."})
-    
+
     file = request.files['ao3_file']
     if file.filename == '':
         return jsonify({"success": False, "error": "No selected file."})
@@ -50,7 +46,7 @@ def submit():
         url = request.form.get('ao3_url')
         if not url:
             link_tag = soup.find('p', class_='message')
-            url_match = re.search(r'https://archiveofourown\\.org/works/\\d+', link_tag.get_text()) if link_tag else None
+            url_match = re.search(r'https://archiveofourown\.org/works/\d+', link_tag.get_text()) if link_tag else None
             url = url_match.group(0) if url_match else None
 
         # Stats
@@ -73,13 +69,16 @@ def submit():
         if missing:
             raise Exception(f"Missing fields: {', '.join(missing)}")
 
+        from datetime import datetime
+
         data = {
             "Title": title,
             "Author": author,
             "URL": url,
             "Words": words,
             "Chapters": chapters,
-            "Status": status
+            "Status": status,
+            "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")
         }
 
         create_notion_page(data)
@@ -89,8 +88,9 @@ def submit():
 
 def create_notion_page(data):
     upload_history.insert(0, data)
-if len(upload_history) > 5:
-    upload_history.pop()
+    if len(upload_history) > 5:
+        upload_history.pop()
+
     notion.pages.create(
         parent={"database_id": database_id},
         icon={
@@ -109,4 +109,3 @@ if len(upload_history) > 5:
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)), debug=True)
-
