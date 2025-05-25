@@ -12,6 +12,12 @@ app = Flask(__name__)
 notion = Client(auth=os.getenv("NOTION_TOKEN"))
 database_id = os.getenv("NOTION_DATABASE_ID")
 
+upload_history = []
+
+@app.route('/')
+def index():
+    return render_template('index.html', history=upload_history)
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -82,6 +88,9 @@ def submit():
         return jsonify({"success": False, "error": str(e)})
 
 def create_notion_page(data):
+    upload_history.insert(0, data)
+if len(upload_history) > 5:
+    upload_history.pop()
     notion.pages.create(
         parent={"database_id": database_id},
         icon={

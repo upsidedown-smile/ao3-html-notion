@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
     <meta charset="UTF-8">
     <img src="/static/noxion-logo.png" alt="Noxion logo" style="width: 160px; margin-bottom: 1rem; filter: drop-shadow(0 0 6px #000);">
     <title>Upload to Noxion</title>
@@ -64,6 +65,19 @@
         <input type="text" name="ao3_url" placeholder="(Optional) AO3 link if not in file">
     </form>
     <div id="status"></div>
+    {% if history %}
+    <div style="margin-top: 2rem; text-align: left; width: 100%; max-width: 400px;">
+        <h2 style="font-size: 1.2rem; border-bottom: 1px solid #444; padding-bottom: 0.5rem;">Recent Uploads</h2>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+            {% for item in history %}
+                <li style="margin-bottom: 0.5rem;">
+                    <strong>{{ item.Title }}</strong><br>
+                    <a href="{{ item.URL }}" target="_blank" style="color: #a3d0ff;">{{ item.URL }}</a><br>
+                    {{ item.Words }} words, {{ item.Chapters }} – {{ item.Status }}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
     <script>
         document.getElementById('uploadForm').addEventListener('submit', async function(e) {
             e.preventDefault();
