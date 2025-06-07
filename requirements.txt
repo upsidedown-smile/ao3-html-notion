@@ -2,3 +2,4 @@ flask
 python-dotenv
 notion-client
 beautifulsoup4
+flask-cors
