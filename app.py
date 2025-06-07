@@ -5,12 +5,15 @@ from notion_client import Client
 from bs4 import BeautifulSoup
 import tempfile
 import re
+from flask_cors import CORS
 
 load_dotenv()
 
 app = Flask(__name__)
 notion = Client(auth=os.getenv("NOTION_TOKEN"))
 database_id = os.getenv("NOTION_DATABASE_ID")
+
+CORS(app)
 
 upload_history = []
 
